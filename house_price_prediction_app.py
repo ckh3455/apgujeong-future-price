@@ -3,8 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 # 📥 데이터 로드
-file_path = 'D:/OneDrive/excel data/단지 연도별 최대값.xlsx'
-df = pd.read_excel(file_path)
+file_path = '단지 연도별 최대값.xlsx'df = pd.read_excel(file_path)
 df.columns = df.columns.astype(str)
 
 # 📌 앱 제목
