@@ -20,75 +20,62 @@ data = {
 }
 
 df = pd.DataFrame(data)
-# Streamlit 앱 시작
+
+st.set_page_config(layout="wide")
 st.title("🏠 단지별 목표 금액 도달 예상일 계산기")
 
-# Streamlit 앱 시작
-st.title("🏠 단지별 목표 금액 도달 예상일 계산기")
+# 📢 중개업소 홍보
+st.markdown("### 📢 압구정 원 부동산중개")
+st.markdown("📱 02-540-3334  \n👤 최규호 이사")
 
-# 중개업소 홍보
-st.sidebar.header("📢 압구정 원 부동산중개")
-contact_number = st.sidebar.text_input("전화번호", "02-540-3334")
-agent_name = st.sidebar.text_input("개발자", "최규호 이사")
-st.sidebar.markdown(f"📱 {contact_number}\n👤 {agent_name}")
+# 📘 사용법
+st.markdown("### 📘 사용법")
+st.markdown("1️⃣ 단지 선택은 아래 드롭다운에서 선택  \n"
+            "2️⃣ 신고가 입력일자, 금액 입력 (억 단위)  \n"
+            "3️⃣ 목표 금액 입력 (억 단위)  \n"
+            "4️⃣ [확인] 버튼 클릭")
 
-# 사용법 안내
-st.sidebar.markdown("### 📘 사용법")
-st.sidebar.markdown("""
-1️⃣ 단지 선택은 화살표를 눌러 선택  
-2️⃣ 신고가 입력일자와 금액 입력 (억 단위)  
-3️⃣ 목표 금액 입력 (억 단위)  
-""")
-
-# 입력값
+# 📥 입력창
 단지목록 = df['단지명_평형'].unique()
-selected_complex = st.sidebar.selectbox("🏢 단지 선택", 단지목록)
-신고가_일자 = st.sidebar.date_input("📅 신고가 입력일자", datetime.today())
-신고가_금액 = st.sidebar.text_input("💰 신고가 금액 (억)", value="")
-목표_금액 = st.sidebar.text_input("🎯 목표 금액 (억)", value="")
+selected_complex = st.selectbox("🏢 단지 선택", 단지목록)
+신고가_일자 = st.date_input("📅 신고가 입력일자", datetime.today())
+신고가_금액 = st.text_input("💰 신고가 금액 (억)", value="")
+목표_금액 = st.text_input("🎯 목표 금액 (억)", value="")
 
-# 선택 데이터
-selected_data = df[df['단지명_평형'] == selected_complex]
-연도_리스트 = [str(y) for y in range(2015, 2025)]
+# 🖱️ 확인 버튼
+if st.button("✅ 확인"):
+    selected_data = df[df['단지명_평형'] == selected_complex]
+    연도_리스트 = [str(y) for y in range(2015, 2025)]
 
-if not selected_data.empty:
-    # 연평균 상승률 계산
-    상승률_리스트 = []
-    for i in range(len(연도_리스트) - 1):
-        y1, y2 = int(연도_리스트[i]), int(연도_리스트[i+1])
-        v1, v2 = selected_data.iloc[0][y1], selected_data.iloc[0][y2]
-        if pd.notnull(v1) and pd.notnull(v2) and v1 > 0:
-            상승률_리스트.append((v2 - v1) / v1)
-    
-    if 상승률_리스트:
-        연평균_상승률 = sum(상승률_리스트) / len(상승률_리스트)
-        st.write(f"📈 선택 단지: {selected_complex}")
-        st.write(f"📈 2015~2024 연평균 상승률: {연평균_상승률 * 100:.2f}%")
-        
-        if 신고가_금액.strip() != "" and 목표_금액.strip() != "":
-            try:
-                신고가_금액 = float(신고가_금액)
-                목표_금액 = float(목표_금액)
-                if 신고가_금액 > 0 and 목표_금액 > 신고가_금액:
-                    신고가_만원 = 신고가_금액 * 10000
-                    목표_만원 = 목표_금액 * 10000
-                    
-                    # 연평균 상승률로 도달 기간 계산
-                    년수_예상 = np.log(목표_만원 / 신고가_만원) / np.log(1 + 연평균_상승률)
-                    예상_도달일 = 신고가_일자 + timedelta(days=int(년수_예상 * 365))
-                    
-                    format_money = lambda x: f"{x:.1f}" if x % 1 != 0 else f"{int(x)}"
-                    st.success(f"🎯 단지: {selected_complex}\n"
-                               f"신고가: {format_money(신고가_금액)}억, 목표: {format_money(목표_금액)}억\n"
-                               f"평균 연상률: {연평균_상승률*100:.2f}%\n"
-                               f"예상 도달일: {예상_도달일.year}-{예상_도달일.month}-{예상_도달일.day}")
-                else:
-                    st.warning("🚨 목표 금액은 신고가보다 높아야 하고, 신고가는 0보다 커야 합니다.")
-            except ValueError:
-                st.warning("🚨 금액 입력란에 숫자만 입력하세요.")
+    if not selected_data.empty:
+        상승률_리스트 = []
+        for i in range(len(연도_리스트)-1):
+            y1, y2 = int(연도_리스트[i]), int(연도_리스트[i+1])
+            v1, v2 = selected_data.iloc[0][y1], selected_data.iloc[0][y2]
+            if pd.notnull(v1) and pd.notnull(v2) and v1 > 0:
+                상승률_리스트.append((v2 - v1) / v1)
+        if 상승률_리스트:
+            연평균_상승률 = sum(상승률_리스트) / len(상승률_리스트)
+            st.markdown(f"📈 **선택 단지: {selected_complex}**  \n"
+                        f"📈 **2015~2024 연평균 상승률: {연평균_상승률 * 100:.2f}%**")
+            if 신고가_금액.strip() and 목표_금액.strip():
+                try:
+                    신고가_금액, 목표_금액 = float(신고가_금액), float(목표_금액)
+                    if 신고가_금액 > 0 and 목표_금액 > 신고가_금액:
+                        신고가_만원, 목표_만원 = 신고가_금액 * 10000, 목표_금액 * 10000
+                        년수_예상 = np.log(목표_만원 / 신고가_만원) / np.log(1 + 연평균_상승률)
+                        예상_도달일 = 신고가_일자 + timedelta(days=int(년수_예상 * 365))
+                        fmt = lambda x: f"{x:.1f}" if x % 1 != 0 else f"{int(x)}"
+                        st.success(f"🎯 **예상 도달일**: {예상_도달일.year}-{예상_도달일.month}-{예상_도달일.day}  \n"
+                                   f"💰 신고가: {fmt(신고가_금액)}억 → 목표: {fmt(목표_금액)}억  \n"
+                                   f"📈 연평균 상승률: {연평균_상승률 * 100:.2f}%")
+                    else:
+                        st.warning("🚨 목표 금액은 신고가보다 높아야 하고 신고가는 0보다 커야 합니다.")
+                except ValueError:
+                    st.warning("🚨 금액 입력은 숫자로 입력하세요.")
+            else:
+                st.info("💬 신고가 입력일자, 금액, 목표 금액을 입력하세요.")
         else:
-            st.info("💬 신고가 입력일자, 금액과 목표 금액을 입력하세요.")
+            st.warning("📉 선택 단지의 상승률 데이터 부족")
     else:
-        st.warning("📉 선택 단지의 연도별 상승률 데이터 부족.")
-else:
-    st.warning("🚨 선택한 단지의 데이터가 없습니다.")
+        st.warning("🚨 선택한 단지의 데이터가 없습니다.")
